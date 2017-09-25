@@ -1,3 +1,5 @@
+[ ![Codeship Status for aecepoglu/mongo-crud-service](https://app.codeship.com/projects/f377f7f0-8414-0135-7c1f-06f0d61a31a7/status?branch=master)](https://app.codeship.com/projects/247416)
+
 mongo-crud-service
 ===================
 

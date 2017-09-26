@@ -28,7 +28,7 @@ class CrudService {
 	}
 
 	list(filter) {
-		return this.collection.find(filter)
+		return this.collection.find(flattenMongoQuery(filter))
 		.toArray()
 		.then(function(list) {
 			list.forEach(marshal);

@@ -1,4 +1,5 @@
 const ObjectID = require("mongodb").ObjectID;
+const dotize = require("dotize").convert;
 const flattenMongoQuery = require("mongo-dot-notation").flatten;
 
 function marshal(x) {
@@ -28,7 +29,7 @@ class CrudService {
 	}
 
 	list(filter) {
-		return this.collection.find(flattenMongoQuery(filter))
+		return this.collection.find(dotize(filter))
 		.toArray()
 		.then(function(list) {
 			list.forEach(marshal);

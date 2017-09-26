@@ -1,6 +1,5 @@
 const ObjectID = require("mongodb").ObjectID;
-const dotize = require("dotize").convert;
-const flattenMongoQuery = require("mongo-dot-notation").flatten;
+const flatten = require("dotize").convert;
 
 function marshal(x) {
 	x.id = x._id;
@@ -29,7 +28,7 @@ class CrudService {
 	}
 
 	list(filter) {
-		return this.collection.find(dotize(filter))
+		return this.collection.find(flatten(filter))
 		.toArray()
 		.then(function(list) {
 			list.forEach(marshal);
@@ -54,7 +53,7 @@ class CrudService {
 		return this.collection.findAndModify(
 			{_id: ObjectID(id)},
 			undefined,
-			flattenMongoQuery(modifications),
+			{$set: flatten(modifications)},
 			{
 				new: true, //return the modified body
 				upsert: false

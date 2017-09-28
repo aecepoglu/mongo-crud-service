@@ -1,12 +1,6 @@
 const ObjectID = require("mongodb").ObjectID;
 const flatten = require("dotize").convert;
 
-function marshal(x) {
-	x.id = x._id;
-
-	return x;
-};
-
 class CrudService {
 	constructor(mongoDB, collectionName) {
 		if (!mongoDB) {
@@ -19,23 +13,27 @@ class CrudService {
 		this.collection = mongoDB.collection(collectionName);
 	}
 
+	marshal(x) {
+		return x;
+	}
+
 	create(props) {
 		return this.collection.insertOne(props)
 		.then(function(it) {
 			return it.ops[0];
 		})
-		.then(marshal);
+		.then(this.marshal);
 	}
 
 	list(filter) {
 		return this.collection.find(flatten(filter))
 		.toArray()
 		.then(function(list) {
-			list.forEach(marshal);
+			list.forEach(this.marshal);
 
 			return list;
-		});
-	};
+		}.bind(this));
+	}
 
 	show(id) {
 		return this.collection.findOne({_id: ObjectID(id)})
@@ -46,8 +44,8 @@ class CrudService {
 
 			return x;
 		})
-		.then(marshal);
-	};
+		.then(this.marshal);
+	}
 
 	update(id, modifications) {
 		return this.collection.findAndModify(
@@ -60,28 +58,37 @@ class CrudService {
 			}
 		)
 		.then(function(it) {
+			if (!it.value) {
+				throw new Error("no records found or updated");
+			}
+
 			return it.value;
 		})
-		.then(marshal);
-	};
+		.then(this.marshal);
+	}
 
 	remove(id) {
 		return this.collection.findOneAndDelete({_id: ObjectID(id)})
 		.then(function(it) {
-			return it.value;
-		})
-		.then(function(dataJob) {
-			if (!dataJob) {
-				throw new Error("No documents deleted." +
-					" Make sure the document with ID " +
-					id + " exists before deleting it."
-				);
+			if (!it.value) {
+				throw new Error("No documents deleted.");
 			}
 
-			return dataJob;
+			return it.value;
 		})
-		.then(marshal);
-	};
+		.then(this.marshal);
+	}
+
+	setMarshaller(marshal) {
+		this.marshal = marshal;
+
+		return this;
+	}
+
+	static idMarshaller(x) {
+		x.id = x._id;
+		return x;
+	}
 }
 
 module.exports = CrudService;

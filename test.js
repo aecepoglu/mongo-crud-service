@@ -5,7 +5,7 @@ const mongo = require("mongodb");
 
 var Service = require("./index");
 
-describe("Basic Usage", function() {
+describe("Basic Usage with custom marshaller", function() {
 	var myService;
 	var collection;
 	var records;
@@ -193,6 +193,11 @@ describe("Advanced Usage", function() {
 
 				return super.create(props);
 			}
+
+			marshal(it) {
+				it.ID = it._id;
+				return it;
+			}
 		}
 
 		return mongo.MongoClient.connect(MONGO_URL)
@@ -207,7 +212,10 @@ describe("Advanced Usage", function() {
 	});
 
 	it("create() will call our method", function() {
-		return expect(myService.create({name: "aec"}))
-		.to.eventually.have.property("insertedValue", "an inserted value");
+		return myService.create({name: "aec"})
+		.then(function(it) {
+			expect(it).to.have.property("insertedValue", "an inserted value");
+			expect(it).to.have.property("ID");
+		})
 	});
 });

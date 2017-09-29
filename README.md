@@ -16,6 +16,8 @@ var BookService = MongoCrudService(
 )
 ```
 
+MongoCrudService is an ECMA6 class definition; you can `extend` its behaviour. See [Advanced Usage](#advanced-usage) to see how.
+
 ## API
 
 ### new MongoCrudService(db, collectionName)
@@ -32,6 +34,7 @@ Returns a `MongoCrudService` instance
 * `show(id)` returns `Promise`
 * `update(id, props)` returns `Promise`
 * `remove(id)` returns `Promise`
+* `marshal(it)` reformats and returns given document. See *[Marshalling](#marshalling)* section below.
 
 ### Basic Usage
 
@@ -103,4 +106,31 @@ myBookService.create({
 	}
 	*/
 });
+```
+
+#### Marshalling
+
+To marshal/reformat the data you get from CRUD operations you can use 
+
+* use the `setMarshaller(fun)` method. `fun` is a marshaller function as described below
+    ```javascript
+    function myMarshaller(it) {
+    	return it;
+    }
+
+    var MyService = new MongoCrudService(...).setMarshaller(myMarshaller)
+    ```
+* override the `marshal()` method in your child class:
+    ```javascript
+    class MyServiceClass extends MongoCrudService {
+    	marshal(it) {
+		return it;
+    	}
+    }
+    ```
+
+`MongoCrudService.idMarshaller` is a simple marshalling function that adds an `id` field (like *mongoose* does)
+
+```javascript
+var MyService = new MongoCrudService(...).setMarshaller(MongoCrudService.idMarshaller);
 ```

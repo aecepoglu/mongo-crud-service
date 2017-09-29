@@ -76,4 +76,31 @@ require("mongodb").MongoClient.connect("mongodb://...")
 
 ### Advanced Usage
 
-TODO
+Because mongo-crud-service uses ECMA6 class definition, it is easily extensible.
+
+```javascript
+class AdvBookService extends MongoCrudService {
+	create(props) {
+		props.name = props.name.toUpperCase();
+
+		return super.create(props);
+	}
+}
+
+myBookService = new AdvBookService(db, "advbooks");
+
+myBookService.create({
+	name: "Dream Catcher",
+	author: "Stephen King",
+}).then(function(createdBook) {
+	console.log(createdBook);
+
+	/* this will print:
+	{
+		_id: somethingsomethingsomething,
+		name: "DREAM CATCHER",
+		author: "Stephen King"
+	}
+	*/
+});
+```

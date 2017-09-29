@@ -1,6 +1,6 @@
 {
   "name": "mongo-crud-service",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "a extensible mongo service with crud operations",
   "main": "index.js",
   "scripts": {

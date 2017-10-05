@@ -117,7 +117,15 @@ describe("Basic Usage with custom marshaller", function() {
 		var theRecord;
 
 		before(function() {
-			return collection.insertOne({name: "alan", surname: "moore"})
+			return collection.insertOne({
+				name: "alan",
+				surname: "moore",
+				books: {
+					"tom strong": [-2, -1, 0, 1, 2, 3],
+					watchmen: "damn right",
+					batman: "the killing joke"
+				}
+			})
 			.then(function(it) {
 				theRecord = it.ops[0];
 			});
@@ -132,13 +140,26 @@ describe("Basic Usage with custom marshaller", function() {
 				name: undefined,
 				surname: "miranda",
 				newKey: "new value"
-			})).to
-			.eventually.deep.equal({
+			})).to.eventually.deep.equal({
 				_id: theRecord._id,
 				ID: theRecord._id,
 				name: null,
 				surname: "miranda",
-				newKey: "new value"
+				newKey: "new value",
+				books: theRecord.books
+			});
+		});
+
+		it("should be able to patch nested objects and arrays", function() {
+			return expect(myService.update(theRecord._id, {
+				books: {
+					"tom strong": [3, 4, 6],
+					watchmen: "and its many editions"
+				}
+			})).to.eventually.have.deep.property("books", {
+				"tom strong": [3, 4, 6],
+				watchmen: "and its many editions",
+				batman: "the killing joke"
 			});
 		});
 

@@ -1,5 +1,5 @@
 const ObjectID = require("mongodb").ObjectID;
-const flatten = require("dotize").convert;
+const flatten = require("object-squish");
 
 class CrudService {
 	constructor(mongoDB, collectionName) {

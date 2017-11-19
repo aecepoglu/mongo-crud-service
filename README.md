@@ -115,16 +115,20 @@ To marshal/reformat the data you get from CRUD operations you can use
 * use the `setMarshaller(fun)` method. `fun` is a marshaller function as described below
     ```javascript
     function myMarshaller(it) {
+    	it.fullName = it.name + " " + it.surname;
+    	it.id = it._id;
+    
     	return it;
     }
-
+    
     var MyService = new MongoCrudService(...).setMarshaller(myMarshaller)
     ```
 * override the `marshal()` method in your child class:
     ```javascript
     class MyServiceClass extends MongoCrudService {
     	marshal(it) {
-		return it;
+    		// do stuff with 'it'
+    		return it;
     	}
     }
     ```
@@ -133,4 +137,12 @@ To marshal/reformat the data you get from CRUD operations you can use
 
 ```javascript
 var MyService = new MongoCrudService(...).setMarshaller(MongoCrudService.idMarshaller);
+```
+
+#### Timestamps
+
+Enable `createdAt` and `updatedAt` fields by calling `enableTimestamps()` on your *MongoCrudService* instance
+
+```javascript
+var MyService = new MongoCrudService(...).enableTimestamps()
 ```

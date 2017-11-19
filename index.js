@@ -1,5 +1,6 @@
 const ObjectID = require("mongodb").ObjectID;
 const flatten = require("object-squish");
+const merge = require("lodash.merge");
 
 class CrudService {
 	constructor(mongoDB, collectionName) {
@@ -11,6 +12,7 @@ class CrudService {
 		}
 
 		this.collection = mongoDB.collection(collectionName);
+		this.hasTimestamps = false;
 	}
 
 	marshal(x) {
@@ -18,7 +20,11 @@ class CrudService {
 	}
 
 	create(props) {
-		return this.collection.insertOne(props)
+		var extraFields = this.hasTimestamps ? {
+			createdAt: new Date(),
+			updatedAt: new Date()
+		} : {};
+		return this.collection.insertOne(merge(extraFields, props))
 		.then(function(it) {
 			return it.ops[0];
 		})
@@ -48,10 +54,16 @@ class CrudService {
 	}
 
 	update(id, modifications) {
+		var extraFields = this.hasTimestamps ? {
+			updatedAt: new Date()
+		} : {};
+
 		return this.collection.findAndModify(
 			{_id: ObjectID(id)},
 			undefined,
-			{$set: flatten(modifications)},
+			{
+				$set: merge(extraFields, flatten(modifications))
+			},
 			{
 				new: true, //return the modified body
 				upsert: false
@@ -81,6 +93,12 @@ class CrudService {
 
 	setMarshaller(marshal) {
 		this.marshal = marshal;
+
+		return this;
+	}
+
+	enableTimestamps() {
+		this.hasTimestamps = true;
 
 		return this;
 	}

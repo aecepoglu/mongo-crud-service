@@ -4,6 +4,7 @@ const expect = chai.expect;
 const mongo = require("mongodb");
 
 var Service = require("./index");
+var MONGO_URL = process.env["MONGO_URL"] || "mongodb://localhost/test";
 
 describe("Basic Usage with custom marshaller", function() {
 	var myService;
@@ -27,8 +28,6 @@ describe("Basic Usage with custom marshaller", function() {
 
 	before(function() {
 		const COLLECTION_NAME = "testrecords";
-
-		var MONGO_URL = process.env["MONGO_URL"] || "mongodb://localhost/test";
 
 		return mongo.MongoClient.connect(MONGO_URL)
 		.then(function(db) {
@@ -137,7 +136,7 @@ describe("Basic Usage with custom marshaller", function() {
 
 		it("should patch the record with given id and return it", function() {
 			return expect(myService.update(theRecord._id, {
-				name: undefined,
+				name: null,
 				surname: "miranda",
 				newKey: "new value"
 			})).to.eventually.deep.equal({
@@ -203,10 +202,11 @@ describe("Basic Usage with custom marshaller", function() {
 });
 
 describe("Advanced Usage", function() {
+	var myService;
+	var collection;
+
 	before(function() {
 		const COLLECTION_NAME = "advrecords";
-
-		var MONGO_URL = process.env["MONGO_URL"] || "mongodb://localhost/test";
 
 		class MyService extends Service {
 			create(props) {
@@ -237,6 +237,48 @@ describe("Advanced Usage", function() {
 		.then(function(it) {
 			expect(it).to.have.property("insertedValue", "an inserted value");
 			expect(it).to.have.property("ID");
+		});
+	});
+});
+
+describe("timestamps", function() {
+	var myService;
+	var collection;
+
+	before(function() {
+		const COLLECTION_NAME = "tsrecords";
+
+		return mongo.MongoClient.connect(MONGO_URL)
+		.then(function(db) {
+			myService = new Service(db, COLLECTION_NAME)
+			.enableTimestamps();
+
+			collection = db.collection(COLLECTION_NAME);
+		});
+	});
+
+	after(function() {
+		return collection.drop();
+	});
+
+	it("'createdAt' should be set by create()", function() {
+		return expect(myService.create({name: "aec"})).to.eventually.have.property("createdAt");
+	});
+
+	it("'updatedAt' should be set by create() and changed by update()", function() {
+		var updatedAt;
+
+		return myService.create({name: "aec"})
+		.then(function(it) {
+			expect(it).to.have.property("updatedAt");
+
+			updatedAt = it.updatedAt;
+
+			return myService.update(it._id, {name: "aec-v2"});
 		})
+		.then(function(it) {
+			expect(it).to.have.property("updatedAt");
+			expect(it.updatedAt).to.not.equal(updatedAt);
+		});
 	});
 });

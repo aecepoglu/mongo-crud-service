@@ -1,5 +1,5 @@
 const ObjectID = require("mongodb").ObjectID;
-const flatten = require("object-squish");
+const flatten = require("flat").flatten;
 const merge = require("lodash.merge");
 
 class CrudService {
@@ -32,7 +32,7 @@ class CrudService {
 	}
 
 	list(filter) {
-		return this.collection.find(flatten(filter))
+		return this.collection.find(flatten(filter || {}))
 		.toArray()
 		.then(function(list) {
 			list.forEach(this.marshal);
@@ -62,7 +62,7 @@ class CrudService {
 			{_id: ObjectID(id)},
 			undefined,
 			{
-				$set: merge(extraFields, flatten(modifications))
+				$set: flatten(merge(extraFields, modifications), {safe: true})
 			},
 			{
 				new: true, //return the modified body

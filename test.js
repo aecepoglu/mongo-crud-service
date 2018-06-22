@@ -6,6 +6,19 @@ const mongo = require("mongodb");
 var Service = require("./index");
 var MONGO_URL = process.env["MONGO_URL"] || "mongodb://localhost/test";
 
+var mongoDb;
+
+before(function() {
+	return mongo.MongoClient.connect(MONGO_URL)
+		.then(function(db) {
+			mongoDb = db;
+		});
+});
+
+after(function() {
+	return mongoDb.close();
+});
+
 describe("Basic Usage with custom marshaller", function() {
 	var myService;
 	var collection;
@@ -29,22 +42,19 @@ describe("Basic Usage with custom marshaller", function() {
 	before(function() {
 		const COLLECTION_NAME = "testrecords";
 
-		return mongo.MongoClient.connect(MONGO_URL)
-		.then(function(db) {
-			myService = new Service(db, COLLECTION_NAME)
+		myService = new Service(mongoDb, COLLECTION_NAME)
 			.setMarshaller(myMarshaller);
 
-			collection = db.collection(COLLECTION_NAME);
+		collection = mongoDb.collection(COLLECTION_NAME);
 
-			return collection.insertMany([
-				{name: "brian", surname: "vaughan"},
-				{name: "fiona", surname: "staples"},
-				{name: "brian", surname: "azzarello"},
-			]);
-		}).then(function(insertions) {
+		collection.insertMany([
+			{name: "brian", surname: "vaughan"},
+			{name: "fiona", surname: "staples"},
+			{name: "brian", surname: "azzarello"},
+		]).then(function(insertions) {
 			records = insertions.ops
-			.sort(sortById)
-			.map(myMarshaller);
+				.sort(sortById)
+				.map(myMarshaller);
 		});
 	});
 
@@ -86,9 +96,9 @@ describe("Basic Usage with custom marshaller", function() {
 
 		it("should have marshalled results", function() {
 			return expect(myService.list()
-			.then(function(results) {
-				return results[0];
-			})).to.eventually.have.property("ID");
+				.then(function(results) {
+					return results[0];
+				})).to.eventually.have.property("ID");
 		});
 	});
 
@@ -187,12 +197,12 @@ describe("Basic Usage with custom marshaller", function() {
 
 		it("should remove the record with given id", function() {
 			return myService.remove(theRecord._id)
-			.then(function() {
-				return collection.findOne({_id: theRecord._id})
-				.then(function(recordFoundAfterDeletion) {
-					expect(recordFoundAfterDeletion).not.to.be.undefined;
+				.then(function() {
+					return collection.findOne({_id: theRecord._id})
+					.then(function(recordFoundAfterDeletion) {
+						expect(recordFoundAfterDeletion).not.to.be.undefined;
+					});
 				});
-			});
 		})
 
 		it("should fail if record with given id doesn't exist", function() {
@@ -221,11 +231,8 @@ describe("Advanced Usage", function() {
 			}
 		}
 
-		return mongo.MongoClient.connect(MONGO_URL)
-		.then(function(db) {
-			myService = new MyService(db, COLLECTION_NAME);
-			collection = db.collection(COLLECTION_NAME);
-		});
+		myService = new MyService(mongoDb, COLLECTION_NAME);
+		collection = mongoDb.collection(COLLECTION_NAME);
 	});
 
 	after(function() {
@@ -234,10 +241,14 @@ describe("Advanced Usage", function() {
 
 	it("create() will call our method", function() {
 		return myService.create({name: "aec"})
-		.then(function(it) {
-			expect(it).to.have.property("insertedValue", "an inserted value");
-			expect(it).to.have.property("ID");
-		});
+			.then(function(it) {
+				expect(it).to.have.property("insertedValue", "an inserted value");
+				expect(it).to.have.property("ID");
+			});
+	});
+
+	it("has a 'collection' property that is instance of Collection", function() {
+		expect(myService.collection).to.be.instanceof(mongo.Collection);
 	});
 });
 
@@ -248,17 +259,14 @@ describe("timestamps", function() {
 	before(function() {
 		const COLLECTION_NAME = "tsrecords";
 
-		return mongo.MongoClient.connect(MONGO_URL)
-		.then(function(db) {
-			myService = new Service(db, COLLECTION_NAME)
+		myService = new Service(mongoDb, COLLECTION_NAME)
 			.enableTimestamps();
 
-			collection = db.collection(COLLECTION_NAME);
-		});
+		collection = mongoDb.collection(COLLECTION_NAME);
 	});
 
 	after(function() {
-		return collection.drop();
+		return collection.drop()
 	});
 
 	it("'createdAt' should be set by create()", function() {
@@ -269,16 +277,16 @@ describe("timestamps", function() {
 		var updatedAt;
 
 		return myService.create({name: "aec"})
-		.then(function(it) {
-			expect(it).to.have.property("updatedAt");
+			.then(function(it) {
+				expect(it).to.have.property("updatedAt");
 
-			updatedAt = it.updatedAt;
+				updatedAt = it.updatedAt;
 
-			return myService.update(it._id, {name: "aec-v2"});
-		})
-		.then(function(it) {
-			expect(it).to.have.property("updatedAt");
-			expect(it.updatedAt).to.not.equal(updatedAt);
-		});
+				return myService.update(it._id, {name: "aec-v2"});
+			})
+			.then(function(it) {
+				expect(it).to.have.property("updatedAt");
+				expect(it.updatedAt).to.not.equal(updatedAt);
+			});
 	});
 });

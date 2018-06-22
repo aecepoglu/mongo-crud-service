@@ -141,8 +141,21 @@ var MyService = new MongoCrudService(...).setMarshaller(MongoCrudService.idMarsh
 
 #### Timestamps
 
-Enable `createdAt` and `updatedAt` fields by calling `enableTimestamps()` on your *MongoCrudService* instance
+Enable `createdAt` and `updatedAt` fields by calling `enableTimestamps()` on your `MongoCrudService` instance
 
 ```javascript
 var MyService = new MongoCrudService(...).enableTimestamps()
+```
+
+#### Beyond CRUD
+
+If you want to use other MongoDB methods, access them through `collection` of your `MongoCrudService` instance.  
+This will be an instance of [*MongoDB Collection*](http://mongodb.github.io/node-mongodb-native/3.0/api/Collection.html).
+
+```javascript
+var BookService = new MongoCrudService(...);
+BookService.collection.count({year: {$gt: 2006}})
+	.then(function(count) {
+		console.log("There are " + count + " books released after 2006");
+	});
 ```

@@ -39,10 +39,11 @@ Returns a `MongoCrudService` instance
 ### Basic Usage
 
 ```javascript
+const MongoClient = require("mongodb").MongoClient;
 var MongoCrudService = require("mongo-crud-service");
 
 /* establish a mongo connection */
-require("mongodb").MongoClient.connect("mongodb://...")
+new MongoClient("mongodb://...").connect()
 .then(function(mongoConnection) {
 	return mongoConnection.db;
 })
@@ -110,17 +111,17 @@ myBookService.create({
 
 #### Marshalling
 
-To marshal/reformat the data you get from CRUD operations you can use 
+To marshal/reformat the data you get from CRUD operations you can use
 
 * use the `setMarshaller(fun)` method. `fun` is a marshaller function as described below
     ```javascript
     function myMarshaller(it) {
     	it.fullName = it.name + " " + it.surname;
     	it.id = it._id;
-    
+
     	return it;
     }
-    
+
     var MyService = new MongoCrudService(...).setMarshaller(myMarshaller)
     ```
 * override the `marshal()` method in your child class:
@@ -149,7 +150,7 @@ var MyService = new MongoCrudService(...).enableTimestamps()
 
 #### Beyond CRUD
 
-If you want to use other MongoDB methods, access them through `collection` of your `MongoCrudService` instance.  
+If you want to use other MongoDB methods, access them through `collection` of your `MongoCrudService` instance.
 This will be an instance of [*MongoDB Collection*](http://mongodb.github.io/node-mongodb-native/3.0/api/Collection.html).
 
 ```javascript

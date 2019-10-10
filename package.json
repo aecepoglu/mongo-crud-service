@@ -1,6 +1,6 @@
 {
   "name": "mongo-crud-service",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "a extensible mongo service with crud operations",
   "main": "index.js",
   "scripts": {
@@ -9,14 +9,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "flat": "^4.0.0",
-    "lodash.merge": "^4.6.0",
-    "mongodb": "^2.2.31"
+    "flat": "^4.1.0",
+    "lodash.merge": "^4.6.2",
+    "mongodb": "^3.3.2"
   },
   "devDependencies": {
-    "chai": "^4.1.2",
+    "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
-    "mocha": "^5.2.0"
+    "mocha": "^6.2.0"
   },
   "engines": {
     "node": ">=6.9.0"

@@ -58,15 +58,14 @@ class CrudService {
 			updatedAt: new Date()
 		} : {};
 
-		return this.collection.findAndModify(
+		return this.collection.findOneAndUpdate(
 			{_id: ObjectID(id)},
-			undefined,
 			{
 				$set: flatten(merge(extraFields, modifications), {safe: true})
 			},
 			{
-				new: true, //return the modified body
-				upsert: false
+				upsert: false,
+        returnOriginal: false //return the modified body
 			}
 		)
 		.then(function(it) {

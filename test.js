@@ -1,22 +1,28 @@
 const chai = require("chai");
 chai.use(require("chai-as-promised"));
 const expect = chai.expect;
-const mongo = require("mongodb");
+const Collection = require("mongodb").Collection;
+const MongoClient = require('mongodb').MongoClient;
 
 var Service = require("./index");
 var MONGO_URL = process.env["MONGO_URL"] || "mongodb://localhost/test";
 
+var mongoClient;
 var mongoDb;
 
 before(function() {
-	return mongo.MongoClient.connect(MONGO_URL)
-		.then(function(db) {
-			mongoDb = db;
-		});
+  mongoClient = new MongoClient(MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true });
+
+  return mongoClient.connect()
+  .then(function(client) {
+    mongoClient = client;
+    mongoDb = client.db(client.s.options.dbName);
+    return mongoDb;
+  });
 });
 
 after(function() {
-	return mongoDb.close();
+	return mongoClient.close();
 });
 
 describe("Basic Usage with custom marshaller", function() {
@@ -73,7 +79,7 @@ describe("Basic Usage with custom marshaller", function() {
 		});
 
 		after(function() {
-			return collection.remove({_id: createdRecord._id});
+			return collection.findOneAndDelete({_id: createdRecord._id});
 		});
 
 		it("should create and return a model with given values", function() {
@@ -141,7 +147,7 @@ describe("Basic Usage with custom marshaller", function() {
 		});
 
 		after(function() {
-			return collection.remove({_id: theRecord._id});
+			return collection.findOneAndDelete({_id: theRecord._id});
 		});
 
 		it("should patch the record with given id and return it", function() {
@@ -192,7 +198,7 @@ describe("Basic Usage with custom marshaller", function() {
 		});
 
 		afterEach(function() {
-			return collection.remove({_id: theRecord._id});
+			return collection.findOneAndDelete({_id: theRecord._id});
 		});
 
 		it("should remove the record with given id", function() {
@@ -248,7 +254,7 @@ describe("Advanced Usage", function() {
 	});
 
 	it("has a 'collection' property that is instance of Collection", function() {
-		expect(myService.collection).to.be.instanceof(mongo.Collection);
+		expect(myService.collection).to.be.instanceof(Collection);
 	});
 });
 

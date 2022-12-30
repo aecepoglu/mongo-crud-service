@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "flat": "^4.1.0",
+    "flat": "^5.0.1",
     "lodash.merge": "^4.6.2",
     "mongodb": "^3.3.2"
   },
